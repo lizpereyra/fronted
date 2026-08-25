@@ -16,3 +16,10 @@ class Producto(ProductoBase):
 
     class Config:
         from_attributes = True
+
+class CompraItem(BaseModel):
+    producto_id: int
+    cantidad: int
+
+class Pedido(BaseModel):
+    items: list[CompraItem]
