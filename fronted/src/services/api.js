@@ -1,12 +1,14 @@
 const API_URL = "http://localhost:8000";
 
-export async function fetchProductos() {
-  const res = await fetch(`${API_URL}/productos`);
-  if (!res.ok) {
-    throw new Error("No se pudo obtener el catálogo de productos");
-  }
-  return res.json();
+export async function getProductos({ page = 0, limit = 6, nombre = "" } = {}) {
+  const params = new URLSearchParams({ skip: page * limit, limit });
+  if (nombre) params.append("nombre", nombre);
+  const respuesta = await fetch(`${API_URL}/productos?${params}`);
+  if (!respuesta.ok) throw new Error("Error al consultar el backend");
+  return respuesta.json();
 }
+
+export const fetchProductos = getProductos;
 
 export async function comprarProductos(items) {
   const res = await fetch(`${API_URL}/productos/comprar`, {

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { fetchProductos, comprarProductos } from "../services/api";
+import { getProductos, comprarProductos } from "../services/api";
 import ProductCard from "../components/ProductCard";
 
 export default function Catalogo() {
-  const [productos, setProductos] = useState([]);
+  const [productosState, setProductosState] = useState([]);
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isRegretOpen, setIsRegretOpen] = useState(false);
@@ -20,24 +20,36 @@ export default function Catalogo() {
   const [regretOrderCode, setRegretOrderCode] = useState("");
   const [regretReason, setRegretReason] = useState("");
 
-  // Load products on mount
-  useEffect(() => {
-    loadCatalog();
-  }, []);
+  // Search & Pagination states
+  const [page, setPage] = useState(0);
+  const [busqueda, setBusqueda] = useState("");
+
+  // Define wrapped state setter to manage loading/error automatically
+  const setProductos = (data) => {
+    setProductosState(data);
+    setError("");
+    setLoading(false);
+  };
+
+  const productos = productosState;
 
   const loadCatalog = async () => {
     setLoading(true);
     try {
-      const data = await fetchProductos();
+      const data = await getProductos({ page, limit: 6, nombre: busqueda });
       setProductos(data);
       setError("");
     } catch (err) {
       setError("No pudimos conectar con la pastelería. Por favor, verifica que el servidor esté activo.");
       console.error(err);
-    } finally {
       setLoading(false);
     }
   };
+
+  // Load products when page or busqueda changes
+  useEffect(() => {
+    loadCatalog();
+  }, [page, busqueda]);
 
   // Add to cart handler
   const handleAddToCart = (producto) => {
@@ -243,7 +255,7 @@ export default function Catalogo() {
 
       {/* Main Catalog Area */}
       <main id="catalogo" className="max-w-7xl mx-auto px-6 py-16 flex-grow w-full">
-        <div className="flex justify-between items-center mb-10">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
           <div>
             <h2 className="text-2xl md:text-4xl font-bold text-pastel-pink-850 font-serif">
               Nuestro Catálogo Dulce
@@ -252,13 +264,36 @@ export default function Catalogo() {
               Selecciona tu postre favorito y realiza tu compra de forma segura.
             </p>
           </div>
-          <button 
-            onClick={loadCatalog}
-            className="p-2 rounded-xl bg-white hover:bg-pastel-pink-100 text-pastel-pink-600 border border-pastel-pink-200 transition-all text-xs font-semibold flex items-center gap-1 cursor-pointer"
-            title="Recargar Catálogo"
-          >
-            🔄 Actualizar
-          </button>
+          
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-pastel-pink-400">
+                🔍
+              </span>
+              <input 
+                type="text" 
+                placeholder="Buscar productos..." 
+                value={busqueda} 
+                onChange={(e) => {
+                  setPage(0);
+                  setBusqueda(e.target.value);
+                  setLoading(true);
+                }}
+                className="pl-9 pr-4 py-2.5 rounded-xl border border-pastel-pink-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-pastel-pink-400 focus:border-transparent text-sm w-64 transition-all duration-200"
+              />
+            </div>
+            
+            <button 
+              onClick={() => {
+                setLoading(true);
+                loadCatalog();
+              }}
+              className="p-2.5 rounded-xl bg-white hover:bg-pastel-pink-100 text-pastel-pink-650 border border-pastel-pink-200 transition-all text-xs font-semibold flex items-center gap-1 cursor-pointer"
+              title="Recargar Catálogo"
+            >
+              🔄 Actualizar
+            </button>
+          </div>
         </div>
 
         {/* Loading / Error or Product Grid */}
@@ -286,21 +321,56 @@ export default function Catalogo() {
             </button>
           </div>
         ) : productos.length === 0 ? (
-          <div className="bg-amber-50 border border-amber-200 text-amber-850 p-8 rounded-3xl text-center max-w-xl mx-auto">
+          <div className="bg-amber-50 border border-amber-200 text-amber-850 p-8 rounded-3xl text-center max-w-xl mx-auto animate-fade-in">
             <span className="text-4xl mb-3 block">🍰</span>
-            <h3 className="font-bold text-lg mb-2">No hay productos cargados</h3>
-            <p className="text-sm">En este momento no contamos con stock en exhibición. Intenta actualizar en unos instantes.</p>
+            <h3 className="font-bold text-lg mb-2">
+              {busqueda ? "No se encontraron resultados" : "No hay productos cargados"}
+            </h3>
+            <p className="text-sm">
+              {busqueda 
+                ? `No encontramos postres que coincidan con "${busqueda}". Intenta con otra búsqueda.` 
+                : "En este momento no contamos con stock en exhibición. Intenta actualizar en unos instantes."}
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {productos.map(prod => (
-              <ProductCard 
-                key={prod.id} 
-                producto={prod} 
-                onAddToCart={handleAddToCart}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {productos.map(prod => (
+                <ProductCard 
+                  key={prod.id} 
+                  producto={prod} 
+                  onAddToCart={handleAddToCart}
+                />
+              ))}
+            </div>
+
+            {/* Paginación */}
+            <div className="flex items-center justify-center gap-4 mt-12">
+              <button 
+                onClick={() => {
+                  setPage(page - 1);
+                  setLoading(true);
+                }} 
+                disabled={page === 0}
+                className="px-5 py-2.5 rounded-xl bg-white hover:bg-pastel-pink-100 text-pastel-pink-650 border border-pastel-pink-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-all text-sm font-semibold cursor-pointer shadow-sm active:scale-95"
+              >
+                Anterior
+              </button>
+              <span className="text-sm font-semibold text-pastel-pink-850 bg-white border border-pastel-pink-200 px-4 py-2.5 rounded-xl shadow-xs">
+                Página {page + 1}
+              </span>
+              <button 
+                onClick={() => {
+                  setPage(page + 1);
+                  setLoading(true);
+                }}
+                disabled={productos.length < 6}
+                className="px-5 py-2.5 rounded-xl bg-white hover:bg-pastel-pink-100 text-pastel-pink-650 border border-pastel-pink-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-all text-sm font-semibold cursor-pointer shadow-sm active:scale-95"
+              >
+                Siguiente
+              </button>
+            </div>
+          </>
         )}
       </main>
 
