@@ -25,7 +25,6 @@ export default function ProductCard({ producto, onAddToCart }) {
   const bgGradient = BACKGROUNDS[producto.nombre] || "from-pink-100 to-rose-100";
   const isOutOfStock = producto.stock <= 0;
 
-  // Format currency helper
   const formatCurrency = (val) => {
     return new Intl.NumberFormat("es-AR", {
       style: "currency",
@@ -36,87 +35,73 @@ export default function ProductCard({ producto, onAddToCart }) {
   };
 
   return (
-    <div className="glassmorphism rounded-3xl overflow-hidden hover-scale border border-pastel-pink-200 shadow-sm flex flex-col justify-between h-full">
-      {/* Product Image Area / Emoji Header */}
-      <div className={`h-40 bg-gradient-to-tr ${bgGradient} flex items-center justify-center relative overflow-hidden`}>
-        {/* Decorative background circles */}
-        <div className="absolute w-24 h-24 bg-white/30 rounded-full -top-6 -left-6 blur-md"></div>
-        <div className="absolute w-28 h-28 bg-white/20 rounded-full -bottom-10 -right-10 blur-lg"></div>
+    <div className="bg-white rounded-3xl overflow-hidden border border-pastel-pink-200 shadow-xs flex flex-col justify-between h-full hover:shadow-md transition-all duration-200">
+      
+      {/* Product Banner / Emoji */}
+      <div className={`h-40 bg-gradient-to-tr ${bgGradient} flex items-center justify-center relative overflow-hidden select-none`}>
+        <div className="absolute w-20 h-20 bg-white/40 rounded-full -top-4 -left-4 blur-xs"></div>
+        <div className="absolute w-24 h-24 bg-white/30 rounded-full -bottom-8 -right-8 blur-sm"></div>
         
-        {/* Floating Emoji */}
-        <span className="text-6xl select-none animate-float drop-shadow-md">
+        <span className="text-6xl drop-shadow-xs animate-float">
           {emoji}
         </span>
       </div>
 
-      {/* Product Details */}
-      <div className="p-6 flex flex-col flex-grow text-left">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="text-xl font-semibold text-pastel-pink-900 font-serif leading-tight">
+      {/* Product Information */}
+      <div className="p-5 flex flex-col flex-grow text-left">
+        <div className="flex justify-between items-start mb-2 gap-2">
+          <h4 className="text-xl font-bold text-pastel-pink-950 font-serif leading-tight m-0">
             {producto.nombre}
-          </h3>
+          </h4>
           
           {/* Stock Badge */}
           {isOutOfStock ? (
-            <span className="text-xs px-2.5 py-1 font-semibold rounded-full bg-red-100 text-red-700">
+            <span className="text-[11px] px-2.5 py-1 font-bold rounded-full bg-rose-100 text-rose-800 shrink-0">
               Agotado
             </span>
           ) : producto.stock <= 3 ? (
-            <span className="text-xs px-2.5 py-1 font-semibold rounded-full bg-amber-100 text-amber-800 animate-pulse">
+            <span className="text-[11px] px-2.5 py-1 font-bold rounded-full bg-amber-100 text-amber-900 shrink-0">
               ¡Solo {producto.stock}!
             </span>
           ) : (
-            <span className="text-xs px-2.5 py-1 font-semibold rounded-full bg-emerald-50 text-emerald-700">
-              En Stock: {producto.stock}
+            <span className="text-[11px] px-2.5 py-1 font-bold rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0">
+              Stock: {producto.stock}
             </span>
           )}
         </div>
 
-        {/* Legal and Price Details - Ley 24.240 */}
-        <div className="mt-auto pt-4 border-t border-pastel-pink-100/60">
-          <p className="text-xs text-pastel-pink-600/70 font-medium uppercase tracking-wider mb-1">
+        {/* Price & Installments */}
+        <div className="mt-auto pt-3 border-t border-pastel-pink-100">
+          <p className="text-[11px] text-pastel-pink-800 font-semibold uppercase tracking-wider mb-0.5 m-0">
             Precio Final
           </p>
-          <div className="flex items-baseline gap-2 mb-2">
-            <span className="text-2xl font-bold text-pastel-pink-700">
-              {formatCurrency(producto.precio_final)}
-            </span>
+          <div className="text-2xl font-bold text-pastel-pink-900 mb-2">
+            {formatCurrency(producto.precio_final)}
           </div>
 
-          {/* Installments (Ley 24.240 requirement of clear financing terms) */}
           {producto.cuotas_cantidad > 1 && (
-            <div className="bg-pastel-pink-50/50 rounded-xl p-2.5 border border-pastel-pink-100 text-xs text-pastel-pink-800">
-              <p className="font-semibold text-pink-700">
-                💳 {producto.cuotas_cantidad} cuotas sin interés de {formatCurrency(producto.cuotas_valor)}
-              </p>
-              <p className="text-[10px] text-pastel-pink-600/80 mt-0.5">
-                C.F.T.: 0,00% - T.N.A.: 0,00% (Ley 24.240)
-              </p>
+            <div className="bg-pastel-pink-50 rounded-xl p-2 border border-pastel-pink-200 text-xs text-pastel-pink-900 font-medium">
+              💳 {producto.cuotas_cantidad} cuotas sin interés de {formatCurrency(producto.cuotas_valor)}
             </div>
           )}
-
-          {/* Food guarantee or health info (Legal transparency) */}
-          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-gray-500">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            <span>Elaboración fresca del día</span>
-          </div>
         </div>
       </div>
 
-      {/* Action Button */}
-      <div className="p-6 pt-0">
+      {/* Add to Cart Action */}
+      <div className="p-5 pt-0">
         <button
           onClick={() => onAddToCart(producto)}
           disabled={isOutOfStock}
-          className={`w-full py-3 px-4 rounded-2xl font-semibold shadow-sm transition-all duration-200 cursor-pointer ${
+          className={`w-full py-3 px-4 rounded-xl font-bold text-sm shadow-2xs transition-all duration-200 cursor-pointer ${
             isOutOfStock
-              ? "bg-pastel-pink-100 text-pastel-pink-400 cursor-not-allowed"
-              : "bg-pastel-pink-500 hover:bg-pastel-pink-600 text-white hover:shadow-md active:scale-95"
+              ? "bg-pastel-pink-100 text-pastel-pink-400 cursor-not-allowed border border-pastel-pink-200"
+              : "bg-pastel-pink-600 hover:bg-pastel-pink-700 text-white hover:shadow-xs active:scale-95"
           }`}
         >
-          {isOutOfStock ? "Sin Stock" : "Agregar al Carrito"}
+          {isOutOfStock ? "Sin Stock Disponible" : "Agregar al Carrito"}
         </button>
       </div>
+
     </div>
   );
 }

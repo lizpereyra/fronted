@@ -12,27 +12,17 @@
   --color-pastel-pink-300: #ffb7c5;
   --color-pastel-pink-400: #ff8fa5;
   --color-pastel-pink-500: #ff6685;
-  --color-pastel-pink-600: #e63e62;
+  --color-pastel-pink-600: #d81b60;
   --color-pastel-pink-700: #c71f43;
-  --color-pastel-pink-800: #9e132e;
-  --color-pastel-pink-900: #7a0e23;
-  
-  --color-gold-50: #fdfbf7;
-  --color-gold-100: #faf3e6;
-  --color-gold-200: #f3e2c3;
-  --color-gold-300: #ebd1a0;
-  --color-gold-400: #dda75c;
-  --color-gold-500: #cca04b;
-  --color-gold-600: #b58039;
-  --color-gold-700: #96612d;
-  --color-gold-800: #784824;
-  --color-gold-900: #5c341b;
+  --color-pastel-pink-800: #6a1b29;
+  --color-pastel-pink-900: #4a2e35;
+  --color-pastel-pink-950: #36171f;
 }
 
 body {
   font-family: var(--font-sans);
   background-color: var(--color-pastel-pink-50);
-  color: #4a3b3d;
+  color: var(--color-pastel-pink-900);
   margin: 0;
   padding: 0;
 }
@@ -41,26 +31,18 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-serif);
 }
 
-/* Micro-animations and custom utilities */
-.hover-scale {
-  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
-}
-.hover-scale:hover {
-  transform: translateY(-4px) scale(1.02);
-}
-
 .glassmorphism {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 209, 220, 0.5);
 }
 
 .glassmorphism-dark {
-  background: rgba(255, 245, 247, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 183, 197, 0.3);
+  background: rgba(255, 245, 247, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 183, 197, 0.4);
 }
 
 /* Custom scrollbars */
@@ -71,11 +53,11 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--color-pastel-pink-50);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-pastel-pink-200);
+  background: var(--color-pastel-pink-300);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-pastel-pink-300);
+  background: var(--color-pastel-pink-400);
 }
 
 @keyframes float {
@@ -83,7 +65,7 @@ h1, h2, h3, h4, h5, h6 {
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-8px);
+    transform: translateY(-6px);
   }
 }
 
