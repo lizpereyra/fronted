@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { getProductos } from "../services/api";
 import ProductCard from "../components/ProductCard";
 import { useCarrito } from "../context/CarritoContext";
@@ -10,7 +11,14 @@ export default function Catalogo() {
   const [busqueda, setBusqueda] = useState("");
   const [notification, setNotification] = useState(null);
 
+  const location = useLocation();
   const { agregar } = useCarrito();
+
+  useEffect(() => {
+    if (location.state?.avisoAdmin) {
+      setNotification({ msg: location.state.avisoAdmin, type: "error" });
+    }
+  }, [location.state]);
 
   const loadCatalog = async () => {
     setLoading(true);

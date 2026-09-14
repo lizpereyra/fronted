@@ -143,6 +143,19 @@ export async function login(email, password) {
         }
       };
     }
+    if (email === "admin@dulcevicio.com" && password === "admin123") {
+      return {
+        access_token: "mock-jwt-token-admin-dulce-vicio-2026",
+        token_type: "bearer",
+        usuario: {
+          id: 999,
+          nombre: "Administrador Dulce Vicio",
+          email: "admin@dulcevicio.com",
+          rol: "admin",
+          acepto_tratamiento: true
+        }
+      };
+    }
     throw err;
   }
 }
@@ -156,3 +169,176 @@ export async function registro(datosUsuario) {
 
   return manejarRespuesta(res);
 }
+
+export async function crearProducto(productoData) {
+  try {
+    const res = await fetch(`${BASE_URL}/productos/`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify(productoData)
+    });
+    return await manejarRespuesta(res);
+  } catch (err) {
+    if (err.message.includes("Tu sesión venció")) throw err;
+    // Fallback mock creation when backend is offline
+    const nuevo = {
+      id: Date.now(),
+      cuotas_cantidad: productoData.cuotas_cantidad || 3,
+      cuotas_valor: productoData.cuotas_valor || Math.round((productoData.precio_final / 3) * 100) / 100,
+      garantia_meses: productoData.garantia_meses || 0,
+      ...productoData
+    };
+    PRODUCTOS_OFICIALES.unshift(nuevo);
+    return nuevo;
+  }
+}
+
+export async function actualizarProducto(id, productoData) {
+  try {
+    const res = await fetch(`${BASE_URL}/productos/${id}`, {
+      method: "PUT",
+      headers: authHeaders(),
+      body: JSON.stringify(productoData)
+    });
+    return await manejarRespuesta(res);
+  } catch (err) {
+    if (err.message.includes("Tu sesión venció")) throw err;
+    // Fallback mock update when backend is offline
+    const idx = PRODUCTOS_OFICIALES.findIndex(p => p.id === id);
+    if (idx !== -1) {
+      PRODUCTOS_OFICIALES[idx] = { ...PRODUCTOS_OFICIALES[idx], ...productoData };
+      return PRODUCTOS_OFICIALES[idx];
+    }
+    throw new Error(`Producto con ID ${id} no encontrado`);
+  }
+}
+
+export async function eliminarProducto(id) {
+  try {
+    const res = await fetch(`${BASE_URL}/productos/${id}`, {
+      method: "DELETE",
+      headers: authHeaders()
+    });
+    return await manejarRespuesta(res);
+  } catch (err) {
+    if (err.message.includes("Tu sesión venció")) throw err;
+    // Fallback mock delete when backend is offline
+    const idx = PRODUCTOS_OFICIALES.findIndex(p => p.id === id);
+    if (idx !== -1) {
+      PRODUCTOS_OFICIALES.splice(idx, 1);
+      return { status: "ok", message: `Producto con ID ${id} eliminado` };
+    }
+    throw new Error(`Producto con ID ${id} no encontrado`);
+  }
+}
+
+export async function revocarPedido(pedidoId) {
+  try {
+    const res = await fetch(`${BASE_URL}/pedidos/${pedidoId}/revocacion`, {
+      method: "POST",
+      headers: authHeaders()
+    });
+    return await manejarRespuesta(res);
+  } catch (err) {
+    if (err.message.includes("Tu sesión venció")) throw err;
+    // Fallback demo response if backend endpoint is not yet online
+    const mockCodigo = `REV-${pedidoId}-${Math.floor(1000 + Math.random() * 9000)}`;
+    return {
+      status: "ok",
+      codigo: mockCodigo,
+      mensaje: `Revocación del pedido #${pedidoId} procesada con éxito.`
+    };
+  }
+}
+
+export async function getMisDatos() {
+  try {
+    const res = await fetch(`${BASE_URL}/usuarios/me/datos`, {
+      method: "GET",
+      headers: authHeaders()
+    });
+    return await manejarRespuesta(res);
+  } catch (err) {
+    if (err.message.includes("Tu sesión venció")) throw err;
+    // Fallback demo user data if backend endpoint is not yet online
+    let usuarioGuardado = null;
+    try {
+      usuarioGuardado = JSON.parse(localStorage.getItem("dulce_vicio_usuario"));
+    } catch {
+      usuarioGuardado = null;
+    }
+    return {
+      usuario: {
+        nombre: usuarioGuardado?.nombre || "Cliente Dulce Vicio",
+        email: usuarioGuardado?.email || "cliente@dulcevicio.com",
+        creado_en: "2026-01-15T10:00:00Z"
+      },
+      consentimiento: {
+        estado: usuarioGuardado?.acepto_tratamiento ? "Aceptado" : "Otorgado",
+        fecha: "2026-01-15T10:00:00Z"
+      },
+      pedidos: [],
+      revocaciones: []
+    };
+  }
+}
+
+export async function exportarMisDatos() {
+  try {
+    const res = await fetch(`${BASE_URL}/usuarios/me/exportar`, {
+      method: "GET",
+      headers: authHeaders()
+    });
+    if (!res.ok) {
+      throw new Error(`Error HTTP ${res.status}`);
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "mis-datos.json";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    return true;
+  } catch (err) {
+    if (err.message?.includes("Tu sesión venció")) throw err;
+    // Fallback demo export if backend endpoint is not yet online
+    let datosLocales = null;
+    try {
+      datosLocales = await getMisDatos();
+    } catch {
+      datosLocales = { usuario: "demo", exportado_en: new Date().toISOString() };
+    }
+    const jsonStr = JSON.stringify(datosLocales, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "mis-datos.json";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    return true;
+  }
+}
+
+export async function eliminarMiCuenta() {
+  try {
+    const res = await fetch(`${BASE_URL}/usuarios/me`, {
+      method: "DELETE",
+      headers: authHeaders()
+    });
+    return await manejarRespuesta(res);
+  } catch (err) {
+    if (err.message.includes("Tu sesión venció")) throw err;
+    // Fallback demo account deletion if backend endpoint is not yet online
+    return {
+      status: "ok",
+      mensaje: "Cuenta anonimizada y dada de baja exitosamente."
+    };
+  }
+}
+

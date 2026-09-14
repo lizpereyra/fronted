@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.dependencies import get_db
+from app.dependencies import get_db, require_admin
 from app.db import models
-from app.schemas.producto import ProductoCreate, ProductoOut, PedidoCompra
+from app.schemas.producto import ProductoCreate, ProductoUpdate, ProductoOut, PedidoCompra
 from app.services import productos as productos_service
 
 router = APIRouter(prefix="/productos", tags=["Productos"])
@@ -23,11 +23,44 @@ def listar_productos(
     )
 
 
-@router.post("/", response_model=ProductoOut)
+@router.post("/", response_model=ProductoOut, status_code=status.HTTP_201_CREATED)
 def crear_producto(
-    producto: ProductoCreate, db: Session = Depends(get_db)
+    producto: ProductoCreate,
+    db: Session = Depends(get_db),
+    admin: models.Usuario = Depends(require_admin),
 ):
     return productos_service.crear_producto(db, producto)
+
+
+@router.put("/{id}", response_model=ProductoOut)
+def actualizar_producto(
+    id: int,
+    producto: ProductoUpdate,
+    db: Session = Depends(get_db),
+    admin: models.Usuario = Depends(require_admin),
+):
+    prod_actualizado = productos_service.actualizar_producto(db, id, producto)
+    if not prod_actualizado:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Producto con ID {id} no encontrado",
+        )
+    return prod_actualizado
+
+
+@router.delete("/{id}")
+def eliminar_producto(
+    id: int,
+    db: Session = Depends(get_db),
+    admin: models.Usuario = Depends(require_admin),
+):
+    exito = productos_service.eliminar_producto(db, id)
+    if not exito:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Producto con ID {id} no encontrado",
+        )
+    return {"status": "ok", "message": f"Producto con ID {id} eliminado correctamente"}
 
 
 @router.post("/comprar")

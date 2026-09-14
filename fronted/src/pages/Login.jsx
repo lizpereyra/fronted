@@ -23,7 +23,11 @@ export default function Login() {
     try {
       const res = await login(email, password);
       guardarSesion(res.access_token, res.usuario);
-      navigate(redirectPath, { replace: true });
+      if (res.usuario?.rol === "admin") {
+        navigate("/admin", { replace: true });
+      } else {
+        navigate(redirectPath, { replace: true });
+      }
     } catch (err) {
       console.error("Error al iniciar sesión:", err);
       setError(err.message || "Credenciales incorrectas");
@@ -43,7 +47,24 @@ export default function Login() {
       navigate(redirectPath, { replace: true });
     } catch (err) {
       console.error("Error en usuario demo:", err);
-      setError("Error al ingresar con cuenta demo");
+      setError("Error al ingresar con cuenta demo cliente");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDemoAdmin = async () => {
+    setEmail("admin@dulcevicio.com");
+    setPassword("admin123");
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await login("admin@dulcevicio.com", "admin123");
+      guardarSesion(res.access_token, res.usuario);
+      navigate("/admin", { replace: true });
+    } catch (err) {
+      console.error("Error en admin demo:", err);
+      setError("Error al ingresar con cuenta demo admin");
     } finally {
       setLoading(false);
     }
@@ -59,7 +80,7 @@ export default function Login() {
             Iniciar Sesión
           </h2>
           <p className="text-xs text-pastel-pink-900 mt-1 m-0">
-            Ingresa a tu cuenta para realizar tus pedidos en Dulce Vicio.
+            Ingresa con tu cuenta de Cliente o Administrador.
           </p>
         </div>
 
@@ -79,7 +100,7 @@ export default function Login() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="cliente@dulcevicio.com"
+              placeholder="cliente@dulcevicio.com o admin@dulcevicio.com"
               className="w-full px-4 py-2.5 rounded-xl border border-pastel-pink-300 bg-white focus:outline-none focus:ring-2 focus:ring-pastel-pink-500 text-sm text-pastel-pink-950"
             />
           </div>
@@ -108,13 +129,25 @@ export default function Login() {
         </form>
 
         <div className="mt-4 pt-4 border-t border-pastel-pink-100 flex flex-col gap-2">
-          <button
-            onClick={handleDemoUser}
-            type="button"
-            className="w-full py-2.5 rounded-xl bg-pastel-pink-100 hover:bg-pastel-pink-200 text-pastel-pink-950 font-bold text-xs border border-pastel-pink-300 transition-all cursor-pointer"
-          >
-            👤 Ingresar con Usuario Demo (cliente@dulcevicio.com)
-          </button>
+          <p className="text-[11px] font-bold uppercase text-pastel-pink-800 tracking-wider text-center m-0">
+            Acceso Rápido / Selección de Rol:
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button
+              onClick={handleDemoUser}
+              type="button"
+              className="py-2.5 px-2 rounded-xl bg-pastel-pink-100 hover:bg-pastel-pink-200 text-pastel-pink-950 font-bold text-xs border border-pastel-pink-300 transition-all cursor-pointer text-center"
+            >
+              👤 Cliente Demo
+            </button>
+            <button
+              onClick={handleDemoAdmin}
+              type="button"
+              className="py-2.5 px-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold text-xs border border-amber-300 transition-all cursor-pointer text-center"
+            >
+              🛠️ Admin Demo
+            </button>
+          </div>
 
           <p className="text-center text-xs text-pastel-pink-900 mt-2 m-0">
             ¿No tienes una cuenta aún?{" "}

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { getMisPedidos } from "../services/api";
+import { getMisPedidos, revocarPedido } from "../services/api";
 
 export default function MisPedidos() {
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [revocacionStatus, setRevocacionStatus] = useState(null);
+  const [revocandoId, setRevocandoId] = useState(null);
 
   const fetchPedidos = async () => {
     setLoading(true);
@@ -26,6 +28,48 @@ export default function MisPedidos() {
   useEffect(() => {
     fetchPedidos();
   }, []);
+
+  const puedeRevocar = (pedido) => {
+    if (!pedido) return false;
+    const estado = (pedido.estado || "").toLowerCase();
+    if (estado === "cancelado" || estado === "revocado") {
+      return false;
+    }
+    const fechaCreacion = pedido.creado_en || pedido.fecha;
+    if (!fechaCreacion) return true;
+    try {
+      const fechaPedido = new Date(fechaCreacion);
+      const ahora = new Date();
+      const difMs = ahora.getTime() - fechaPedido.getTime();
+      const difDias = difMs / (1000 * 60 * 60 * 24);
+      return difDias <= 10;
+    } catch {
+      return true;
+    }
+  };
+
+  const handleRevocar = async (pedidoId) => {
+    const confirmado = window.confirm(
+      "¿Estás seguro de que deseas revocar/cancelar este pedido? Esta acción no se puede deshacer."
+    );
+    if (!confirmado) return;
+
+    setRevocandoId(pedidoId);
+    try {
+      const res = await revocarPedido(pedidoId);
+      const codigoObtenido = res.codigo || `REV-${pedidoId}-${Math.floor(1000 + Math.random() * 9000)}`;
+      setRevocacionStatus({
+        pedidoId,
+        codigo: codigoObtenido,
+        mensaje: res.mensaje || `Solicitud de revocación procesada con éxito.`
+      });
+      await fetchPedidos();
+    } catch (err) {
+      alert(`Error al procesar la revocación: ${err.message}`);
+    } finally {
+      setRevocandoId(null);
+    }
+  };
 
   const formatCurrency = (val) => {
     return new Intl.NumberFormat("es-AR", {
@@ -134,7 +178,11 @@ export default function MisPedidos() {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-pastel-pink-100 text-pastel-pink-900 border border-pastel-pink-200 uppercase tracking-wider">
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                      (pedido.estado || "").toLowerCase() === "cancelado"
+                        ? "bg-rose-100 text-rose-900 border border-rose-200"
+                        : "bg-pastel-pink-100 text-pastel-pink-900 border border-pastel-pink-200"
+                    }`}>
                       {pedido.estado || "Pendiente"}
                     </span>
                     <span className="text-lg font-bold text-pastel-pink-950">
@@ -142,6 +190,21 @@ export default function MisPedidos() {
                     </span>
                   </div>
                 </div>
+
+                {/* Revocation Success Code Banner (role="status") */}
+                {revocacionStatus && revocacionStatus.pedidoId === pedido.id && (
+                  <div 
+                    role="status" 
+                    className="mt-4 p-4 bg-emerald-50 border border-emerald-300 text-emerald-950 rounded-2xl text-xs font-semibold flex items-center justify-between shadow-2xs"
+                  >
+                    <span>
+                      ✅ Revocación registrada con éxito. Código de solicitud:{" "}
+                      <strong className="font-mono text-sm bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-300">
+                        {revocacionStatus.codigo}
+                      </strong>
+                    </span>
+                  </div>
+                )}
 
                 {/* Items List inside Order using producto_id as key */}
                 <div className="mt-4 space-y-3">
@@ -172,6 +235,23 @@ export default function MisPedidos() {
                     ))}
                   </div>
                 </div>
+
+                {/* Revocation Action Button */}
+                {puedeRevocar(pedido) && (
+                  <div className="mt-4 pt-4 border-t border-pastel-pink-100 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => handleRevocar(pedido.id)}
+                      disabled={revocandoId === pedido.id}
+                      className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold text-xs shadow-xs transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                    >
+                      <span>↩️</span>
+                      <span>
+                        {revocandoId === pedido.id ? "Procesando revocación…" : "Arrepentirme de esta compra"}
+                      </span>
+                    </button>
+                  </div>
+                )}
 
               </div>
             ))}

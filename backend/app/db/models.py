@@ -21,11 +21,13 @@ class Producto(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String, nullable=False)
+    descripcion = Column(String, nullable=True)
     precio_final = Column(Float, nullable=False)
-    cuotas_cantidad = Column(Integer, nullable=False)
-    cuotas_valor = Column(Float, nullable=False)
-    garantia_meses = Column(Integer, nullable=False)
+    cuotas_cantidad = Column(Integer, nullable=False, default=3)
+    cuotas_valor = Column(Float, nullable=False, default=0.0)
+    garantia_meses = Column(Integer, nullable=False, default=0)
     stock = Column(Integer, nullable=False)
+    imagen = Column(String, nullable=True)
 
 
 class Pedido(Base):

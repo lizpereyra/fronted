@@ -42,6 +42,8 @@ def startup_populate_db():
             conn.execute(text("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS acepto_tratamiento BOOLEAN DEFAULT TRUE;"))
             conn.execute(text("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS fecha_consentimiento TIMESTAMP;"))
             conn.execute(text("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP;"))
+            conn.execute(text("ALTER TABLE productos ADD COLUMN IF NOT EXISTS descripcion VARCHAR;"))
+            conn.execute(text("ALTER TABLE productos ADD COLUMN IF NOT EXISTS imagen VARCHAR;"))
             conn.commit()
     except Exception as e:
         print(f"Migration check info: {e}")
@@ -59,6 +61,19 @@ def startup_populate_db():
                 acepto_tratamiento=True
             )
             db.add(demo_user)
+            db.commit()
+
+        admin_exists = db.query(models.Usuario).filter(models.Usuario.email == "admin@dulcevicio.com").first()
+        if not admin_exists:
+            print("Seeding demo admin account...")
+            admin_user = models.Usuario(
+                nombre="Administrador Dulce Vicio",
+                email="admin@dulcevicio.com",
+                hashed_password=security.get_password_hash("admin123"),
+                rol="admin",
+                acepto_tratamiento=True
+            )
+            db.add(admin_user)
             db.commit()
 
         bakery_names = {

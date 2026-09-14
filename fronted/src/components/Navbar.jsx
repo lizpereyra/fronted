@@ -61,15 +61,40 @@ export default function Navbar() {
           </Link>
 
           {estaAutenticado && (
+            <>
+              <Link
+                to="/mis-pedidos"
+                className={`px-3 py-2 rounded-xl text-xs md:text-sm font-semibold transition-all ${
+                  isActive("/mis-pedidos")
+                    ? "bg-pastel-pink-600 text-white shadow-xs"
+                    : "text-pastel-pink-950 hover:bg-pastel-pink-100"
+                }`}
+              >
+                📦 Mis Pedidos
+              </Link>
+              <Link
+                to="/mis-datos"
+                className={`px-3 py-2 rounded-xl text-xs md:text-sm font-semibold transition-all ${
+                  isActive("/mis-datos")
+                    ? "bg-pastel-pink-600 text-white shadow-xs"
+                    : "text-pastel-pink-950 hover:bg-pastel-pink-100"
+                }`}
+              >
+                👤 Mis Datos
+              </Link>
+            </>
+          )}
+
+          {estaAutenticado && usuario?.rol === "admin" && (
             <Link
-              to="/mis-pedidos"
-              className={`px-3 py-2 rounded-xl text-xs md:text-sm font-semibold transition-all ${
-                isActive("/mis-pedidos")
-                  ? "bg-pastel-pink-600 text-white shadow-xs"
-                  : "text-pastel-pink-950 hover:bg-pastel-pink-100"
+              to="/admin"
+              className={`px-3 py-2 rounded-xl text-xs md:text-sm font-bold transition-all flex items-center gap-1 ${
+                isActive("/admin")
+                  ? "bg-pastel-pink-700 text-white shadow-xs"
+                  : "bg-amber-100 text-amber-950 hover:bg-amber-200 border border-amber-300"
               }`}
             >
-              📦 Mis Pedidos
+              🛠️ Panel Admin
             </Link>
           )}
 
