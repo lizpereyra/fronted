@@ -13,6 +13,7 @@ import Carrito from "./pages/Carrito";
 import MisPedidos from "./pages/MisPedidos";
 import Arrepentimiento from "./pages/Arrepentimiento";
 import MisDatos from "./pages/MisDatos";
+import AdminProductos from "./pages/AdminProductos";
 import Login from "./pages/Login";
 import Registro from "./pages/Registro";
 
@@ -50,6 +51,22 @@ export default function App() {
                   element={
                     <RutaProtegida>
                       <MisDatos />
+                    </RutaProtegida>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <RutaProtegida requiereAdmin={true}>
+                      <AdminProductos />
+                    </RutaProtegida>
+                  }
+                />
+                <Route
+                  path="/admin/productos"
+                  element={
+                    <RutaProtegida requiereAdmin={true}>
+                      <AdminProductos />
                     </RutaProtegida>
                   }
                 />

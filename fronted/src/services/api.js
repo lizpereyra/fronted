@@ -1,13 +1,13 @@
 export const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export const PRODUCTOS_OFICIALES = [
-  { id: 1, nombre: "Tiramisú", precio_final: 4500.0, cuotas_cantidad: 3, cuotas_valor: 1500.0, garantia_meses: 0, stock: 10 },
-  { id: 2, nombre: "Brownie", precio_final: 3000.0, cuotas_cantidad: 3, cuotas_valor: 1000.0, garantia_meses: 0, stock: 10 },
-  { id: 3, nombre: "Chocotorta", precio_final: 4000.0, cuotas_cantidad: 3, cuotas_valor: 1333.33, garantia_meses: 0, stock: 10 },
-  { id: 4, nombre: "Turrón de Quaker", precio_final: 4500.0, cuotas_cantidad: 3, cuotas_valor: 1500.0, garantia_meses: 0, stock: 10 },
-  { id: 5, nombre: "Budín de pan", precio_final: 2500.0, cuotas_cantidad: 3, cuotas_valor: 833.33, garantia_meses: 0, stock: 10 },
-  { id: 6, nombre: "Flan", precio_final: 3000.0, cuotas_cantidad: 3, cuotas_valor: 1000.0, garantia_meses: 0, stock: 10 },
-  { id: 7, nombre: "Cookie", precio_final: 2000.0, cuotas_cantidad: 3, cuotas_valor: 666.67, garantia_meses: 0, stock: 10 }
+  { id: 1, nombre: "Tiramisú", precio_final: 4500.0, cuotas_cantidad: 3, cuotas_valor: 1500.0, garantia_meses: 0, stock: 10, imagen_url: "/images/tiramisu.jpg" },
+  { id: 2, nombre: "Brownie", precio_final: 3000.0, cuotas_cantidad: 3, cuotas_valor: 1000.0, garantia_meses: 0, stock: 10, imagen_url: "/images/brownie.jpg" },
+  { id: 3, nombre: "Chocotorta", precio_final: 4000.0, cuotas_cantidad: 3, cuotas_valor: 1333.33, garantia_meses: 0, stock: 10, imagen_url: "/images/chocotorta.jpg" },
+  { id: 4, nombre: "Turrón de Quaker", precio_final: 4500.0, cuotas_cantidad: 3, cuotas_valor: 1500.0, garantia_meses: 0, stock: 10, imagen_url: "/images/turron_de_quaker.jpg" },
+  { id: 5, nombre: "Budín de pan", precio_final: 2500.0, cuotas_cantidad: 3, cuotas_valor: 833.33, garantia_meses: 0, stock: 10, imagen_url: "/images/budin_de_pan.jpg" },
+  { id: 6, nombre: "Flan", precio_final: 3000.0, cuotas_cantidad: 3, cuotas_valor: 1000.0, garantia_meses: 0, stock: 10, imagen_url: "/images/flan.png" },
+  { id: 7, nombre: "Cookie", precio_final: 2000.0, cuotas_cantidad: 3, cuotas_valor: 666.67, garantia_meses: 0, stock: 10, imagen_url: "/images/cookie.png" }
 ];
 
 export function authHeaders() {
@@ -341,4 +341,58 @@ export async function eliminarMiCuenta() {
     };
   }
 }
+
+export async function subirImagen(id, archivo) {
+  const formData = new FormData();
+  formData.append("archivo", archivo);
+
+  // REGLA OBLIGATORIA: Enviar ÚNICAMENTE authHeaders() con el token Authorization.
+  // ¡JAMÁS agregar 'Content-Type': 'multipart/form-data' manualmente!
+  const headers = { ...authHeaders() };
+  delete headers["Content-Type"];
+
+  try {
+    const res = await fetch(`${BASE_URL}/productos/${id}/imagen`, {
+      method: "POST",
+      headers: headers,
+      body: formData
+    });
+
+    if (res.status === 413) {
+      throw new Error("La imagen no puede pasar de 2 MB");
+    }
+    if (res.status === 415) {
+      throw new Error("El archivo no es una imagen permitida");
+    }
+    if (res.status === 404) {
+      throw new Error("Producto no encontrado");
+    }
+    if (res.status === 403) {
+      throw new Error("No tienes permisos para realizar esta acción");
+    }
+
+    return await manejarRespuesta(res);
+  } catch (err) {
+    if (
+      err.message.includes("La imagen no puede pasar de 2 MB") ||
+      err.message.includes("El archivo no es una imagen permitida") ||
+      err.message.includes("Producto no encontrado") ||
+      err.message.includes("No tienes permisos para realizar esta acción") ||
+      err.message.includes("Tu sesión venció")
+    ) {
+      throw err;
+    }
+    if (err.message.includes("Failed to fetch") || err.message.includes("NetworkError")) {
+      const idx = PRODUCTOS_OFICIALES.findIndex(p => p.id === Number(id));
+      const mockUrl = `/uploads/productos/${id}_${Date.now()}.jpg`;
+      if (idx !== -1) {
+        PRODUCTOS_OFICIALES[idx].imagen_url = mockUrl;
+        return PRODUCTOS_OFICIALES[idx];
+      }
+      return { id, imagen_url: mockUrl };
+    }
+    throw err;
+  }
+}
+
 

@@ -1,4 +1,5 @@
 import React from "react";
+import { urlImagen } from "../utils/imagenes";
 
 const EMOJIS = {
   "Tiramisú": "☕🍰",
@@ -21,6 +22,7 @@ const BACKGROUNDS = {
 };
 
 export default function ProductCard({ producto, onAddToCart }) {
+  const imgUrl = urlImagen(producto);
   const emoji = EMOJIS[producto.nombre] || "🍰";
   const bgGradient = BACKGROUNDS[producto.nombre] || "from-pink-100 to-rose-100";
   const isOutOfStock = producto.stock <= 0;
@@ -37,17 +39,39 @@ export default function ProductCard({ producto, onAddToCart }) {
   return (
     <div className="bg-white rounded-3xl overflow-hidden border border-pastel-pink-200 shadow-xs flex flex-col justify-between h-full hover:shadow-md transition-all duration-200">
       
-      {/* Product Banner / Emoji */}
-      <div className={`h-40 bg-gradient-to-tr ${bgGradient} flex items-center justify-center relative overflow-hidden select-none`}>
-        <div className="absolute w-20 h-20 bg-white/40 rounded-full -top-4 -left-4 blur-xs"></div>
-        <div className="absolute w-24 h-24 bg-white/30 rounded-full -bottom-8 -right-8 blur-sm"></div>
-        
-        <span className="text-6xl drop-shadow-xs animate-float">
-          {emoji}
-        </span>
+      {/* Contenedor con aspect-square para evitar saltos o desalineaciones sin imagen */}
+      <div className="w-full aspect-square relative overflow-hidden bg-pastel-pink-100 flex items-center justify-center border-b border-pastel-pink-100">
+        {imgUrl ? (
+          <img
+            src={imgUrl}
+            alt={producto.nombre}
+            loading="lazy"
+            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+            onError={(e) => {
+              e.target.style.display = "none";
+              const parent = e.target.parentElement;
+              if (parent) {
+                const fallback = parent.querySelector(".fallback-no-image");
+                if (fallback) fallback.style.display = "flex";
+              }
+            }}
+          />
+        ) : null}
+
+        {/* Marcador "Sin imagen" con fallback visual */}
+        <div 
+          className={`fallback-no-image flex flex-col items-center justify-center p-4 text-center select-none bg-gradient-to-tr ${bgGradient} w-full h-full ${
+            imgUrl ? "hidden" : "flex"
+          }`}
+        >
+          <span className="text-5xl drop-shadow-xs mb-2">{emoji}</span>
+          <span className="text-xs font-bold text-pastel-pink-800 bg-white/80 px-3 py-1 rounded-full border border-pastel-pink-200 shadow-2xs">
+            Sin imagen
+          </span>
+        </div>
       </div>
 
-      {/* Product Information */}
+      {/* Información del Producto */}
       <div className="p-5 flex flex-col flex-grow text-left">
         <div className="flex justify-between items-start mb-2 gap-2">
           <h4 className="text-xl font-bold text-pastel-pink-950 font-serif leading-tight m-0">
@@ -70,13 +94,13 @@ export default function ProductCard({ producto, onAddToCart }) {
           )}
         </div>
 
-        {/* Price & Installments */}
+        {/* Precio y Cuotas */}
         <div className="mt-auto pt-3 border-t border-pastel-pink-100">
           <p className="text-[11px] text-pastel-pink-800 font-semibold uppercase tracking-wider mb-0.5 m-0">
             Precio Final
           </p>
           <div className="text-2xl font-bold text-pastel-pink-900 mb-2">
-            {formatCurrency(producto.precio_final)}
+            {formatCurrency(producto.precio_final ?? producto.precio)}
           </div>
 
           {producto.cuotas_cantidad > 1 && (
@@ -87,10 +111,11 @@ export default function ProductCard({ producto, onAddToCart }) {
         </div>
       </div>
 
-      {/* Add to Cart Action */}
+      {/* Botón de Acción */}
       <div className="p-5 pt-0">
         <button
-          onClick={() => onAddToCart(producto)}
+          type="button"
+          onClick={() => onAddToCart && onAddToCart(producto)}
           disabled={isOutOfStock}
           className={`w-full py-3 px-4 rounded-xl font-bold text-sm shadow-2xs transition-all duration-200 cursor-pointer ${
             isOutOfStock

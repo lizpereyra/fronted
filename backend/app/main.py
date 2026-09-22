@@ -105,6 +105,7 @@ def startup_populate_db():
                     cuotas_valor=1500.0,
                     garantia_meses=0,
                     stock=10,
+                    imagen="/images/tiramisu.jpg"
                 ),
                 models.Producto(
                     id=2,
@@ -114,6 +115,7 @@ def startup_populate_db():
                     cuotas_valor=1000.0,
                     garantia_meses=0,
                     stock=10,
+                    imagen="/images/brownie.jpg"
                 ),
                 models.Producto(
                     id=3,
@@ -123,6 +125,7 @@ def startup_populate_db():
                     cuotas_valor=1333.33,
                     garantia_meses=0,
                     stock=10,
+                    imagen="/images/chocotorta.jpg"
                 ),
                 models.Producto(
                     id=4,
@@ -132,6 +135,7 @@ def startup_populate_db():
                     cuotas_valor=1500.0,
                     garantia_meses=0,
                     stock=10,
+                    imagen="/images/turron_de_quaker.jpg"
                 ),
                 models.Producto(
                     id=5,
@@ -141,6 +145,7 @@ def startup_populate_db():
                     cuotas_valor=833.33,
                     garantia_meses=0,
                     stock=10,
+                    imagen="/images/budin_de_pan.jpg"
                 ),
                 models.Producto(
                     id=6,
@@ -150,6 +155,7 @@ def startup_populate_db():
                     cuotas_valor=1000.0,
                     garantia_meses=0,
                     stock=10,
+                    imagen="/images/flan.png"
                 ),
                 models.Producto(
                     id=7,
@@ -159,6 +165,7 @@ def startup_populate_db():
                     cuotas_valor=666.67,
                     garantia_meses=0,
                     stock=10,
+                    imagen="/images/cookie.png"
                 ),
             ]
             db.add_all(bakery_products)
