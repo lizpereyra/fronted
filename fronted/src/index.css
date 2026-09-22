@@ -19,6 +19,10 @@
   --color-pastel-pink-950: #36171f;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--color-pastel-pink-50);

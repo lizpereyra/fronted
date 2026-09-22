@@ -53,6 +53,13 @@ export default function Catalogo() {
     }, duration);
   };
 
+  const scrollToCatalogo = () => {
+    const el = document.getElementById("catalogo");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-pastel-pink-50 flex flex-col font-sans text-pastel-pink-900">
       
@@ -71,10 +78,43 @@ export default function Catalogo() {
         </div>
       )}
 
+      {/* Hero Banner Header */}
+      <section className="relative w-full overflow-hidden max-h-[500px] h-[450px] md:h-[500px] shadow-lg border-b border-pastel-pink-200">
+        <img
+          src="/images/hero_banner.jpg"
+          alt="Dulce Vicio Pastelería Artesanal Gourmet"
+          className="object-cover w-full h-full transform scale-105 hover:scale-100 transition-transform duration-1000 ease-out"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-black/35 flex flex-col items-center justify-center p-6 text-center">
+          <div className="max-w-4xl mx-auto space-y-4">
+            <span className="inline-block px-4 py-1.5 rounded-full bg-pastel-pink-600/90 text-white text-xs md:text-sm font-bold uppercase tracking-widest backdrop-blur-xs border border-white/20 shadow-xs">
+              🧁 Pastelería Artesanal & Gourmet
+            </span>
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold text-white font-serif leading-tight drop-shadow-md m-0">
+              Sabores que conquistan tu paladar
+            </h1>
+            <p className="text-sm md:text-lg text-pink-100 max-w-2xl mx-auto font-sans leading-relaxed m-0 font-medium drop-shadow-xs">
+              Postres frescos elaborados artesanalmente con los mejores ingredientes de la repostería clásica.
+            </p>
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={scrollToCatalogo}
+                className="px-8 py-3.5 rounded-2xl bg-pastel-pink-600 hover:bg-pastel-pink-700 active:bg-pastel-pink-800 text-white font-bold text-sm md:text-base shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 cursor-pointer inline-flex items-center gap-2 border border-pastel-pink-500"
+              >
+                <span>🍰</span>
+                <span>Explorar Catálogo</span>
+                <span>↓</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Main Catalog Area */}
-      <main className="max-w-7xl mx-auto px-4 md:px-8 py-10 flex-grow w-full">
+      <main id="catalogo" className="max-w-7xl mx-auto px-4 md:px-8 py-10 flex-grow w-full scroll-mt-20">
         
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 border-b border-pastel-pink-200 pb-6">
           <div>
             <h2 className="text-2xl md:text-4xl font-bold text-pastel-pink-950 font-serif m-0">
               Catálogo Oficial de Dulce Vicio
