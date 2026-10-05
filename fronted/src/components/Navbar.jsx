@@ -63,14 +63,14 @@ export default function Navbar() {
           {estaAutenticado && (
             <>
               <Link
-                to="/mis-pedidos"
+                to="/compras"
                 className={`px-3 py-2 rounded-xl text-xs md:text-sm font-semibold transition-all ${
-                  isActive("/mis-pedidos")
+                  isActive("/compras") || isActive("/mis-pedidos") || isActive("/pedidos") || isActive("/mis-compras")
                     ? "bg-pastel-pink-600 text-white shadow-xs"
                     : "text-pastel-pink-950 hover:bg-pastel-pink-100"
                 }`}
               >
-                📦 Mis Pedidos
+                🛍️ Compras
               </Link>
               <Link
                 to="/mis-datos"

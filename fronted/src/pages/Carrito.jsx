@@ -39,7 +39,7 @@ export default function Carrito() {
       await crearPedido(items);
       // 4. Clean cart and redirect to order history
       vaciar();
-      navigate("/mis-pedidos");
+      navigate("/compras");
     } catch (err) {
       console.error("Error en checkout:", err);
       // Displays HTTP 409 stock conflict or 401 expiration error message directly from backend

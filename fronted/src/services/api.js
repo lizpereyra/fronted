@@ -69,7 +69,26 @@ export async function getProductos({ page = 0, limit = 6, nombre = "" } = {}) {
 
 export const fetchProductos = getProductos;
 
-export async function crearPedido(items) {
+function getPedidosLocales() {
+  try {
+    const data = localStorage.getItem("dulce_vicio_pedidos");
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+function guardarPedidoLocal(nuevoPedido) {
+  try {
+    const pedidos = getPedidosLocales();
+    pedidos.unshift(nuevoPedido);
+    localStorage.setItem("dulce_vicio_pedidos", JSON.stringify(pedidos));
+  } catch (err) {
+    console.error("Error guardando pedido local:", err);
+  }
+}
+
+export async function crearPedido(items, usuarioCustom = null) {
   const payload = {
     items: items.map(item => ({
       producto_id: item.producto.id,
@@ -83,42 +102,127 @@ export async function crearPedido(items) {
       headers: authHeaders(),
       body: JSON.stringify(payload)
     });
-    return await manejarRespuesta(res);
+    const respuestaServidor = await manejarRespuesta(res);
+    return respuestaServidor;
   } catch (err) {
-    // If backend is down during checkout demo, simulate a successful order response
-    if (err.message.includes("Failed to fetch") || err.message.includes("NetworkError")) {
-      return {
-        id: Math.floor(1000 + Math.random() * 9000),
-        total: items.reduce((acc, i) => acc + i.producto.precio_final * i.cantidad, 0),
-        estado: "pendiente",
-        creado_en: new Date().toISOString(),
-        items: items.map(i => ({
-          id: Math.floor(100 + Math.random() * 900),
-          producto_id: i.producto.id,
-          cantidad: i.cantidad,
-          precio_unitario: i.producto.precio_final,
-          producto: i.producto
-        }))
-      };
+    if (err.message.includes("Tu sesión venció")) throw err;
+
+    // Fallback demo purchase order creation when backend is offline
+    let usuarioActual = usuarioCustom;
+    if (!usuarioActual) {
+      try {
+        usuarioActual = JSON.parse(localStorage.getItem("dulce_vicio_usuario"));
+      } catch {
+        usuarioActual = null;
+      }
     }
-    throw err;
+
+    const nuevoPedido = {
+      id: Math.floor(1000 + Math.random() * 9000),
+      usuario_id: usuarioActual?.id || 1,
+      usuario: {
+        id: usuarioActual?.id || 1,
+        nombre: usuarioActual?.nombre || "Cliente Dulce Vicio",
+        email: usuarioActual?.email || "cliente@dulcevicio.com"
+      },
+      total: items.reduce((acc, i) => acc + (i.producto.precio_final ?? i.producto.precio ?? 0) * i.cantidad, 0),
+      estado: "pendiente",
+      creado_en: new Date().toISOString(),
+      items: items.map(i => ({
+        id: Math.floor(100 + Math.random() * 900),
+        producto_id: i.producto.id,
+        cantidad: i.cantidad,
+        precio_unitario: i.producto.precio_final ?? i.producto.precio ?? 0,
+        producto: i.producto
+      }))
+    };
+
+    // Deduct local stock
+    items.forEach(i => {
+      const idx = PRODUCTOS_OFICIALES.findIndex(p => p.id === i.producto.id);
+      if (idx !== -1 && PRODUCTOS_OFICIALES[idx].stock >= i.cantidad) {
+        PRODUCTOS_OFICIALES[idx].stock -= i.cantidad;
+      }
+    });
+
+    guardarPedidoLocal(nuevoPedido);
+    return nuevoPedido;
   }
 }
 
 export async function getMisPedidos() {
+  let pedidosServidor = [];
   try {
     const res = await fetch(`${BASE_URL}/pedidos/mios`, {
       method: "GET",
       headers: authHeaders()
     });
-    return await manejarRespuesta(res);
+    pedidosServidor = await manejarRespuesta(res);
   } catch (err) {
-    if (err.message.includes("Tu sesión venció")) {
-      throw err;
-    }
-    return [];
+    if (err.message.includes("Tu sesión venció")) throw err;
   }
+
+  const pedidosLocales = getPedidosLocales();
+  const mapPedidos = new Map();
+
+  if (Array.isArray(pedidosServidor)) {
+    pedidosServidor.forEach(p => mapPedidos.set(p.id, p));
+  }
+  pedidosLocales.forEach(p => {
+    if (!mapPedidos.has(p.id)) {
+      mapPedidos.set(p.id, p);
+    }
+  });
+
+  return Array.from(mapPedidos.values()).sort(
+    (a, b) => new Date(b.creado_en || 0) - new Date(a.creado_en || 0)
+  );
 }
+
+export async function getTodosLosPedidos() {
+  let pedidosServidor = [];
+  try {
+    const res = await fetch(`${BASE_URL}/pedidos/`, {
+      method: "GET",
+      headers: authHeaders()
+    });
+    pedidosServidor = await manejarRespuesta(res);
+  } catch (err) {
+    if (err.message.includes("Tu sesión venció")) throw err;
+  }
+
+  const pedidosLocales = getPedidosLocales();
+  const mapPedidos = new Map();
+
+  if (Array.isArray(pedidosServidor)) {
+    pedidosServidor.forEach(p => mapPedidos.set(p.id, p));
+  }
+  pedidosLocales.forEach(p => {
+    if (!mapPedidos.has(p.id)) {
+      mapPedidos.set(p.id, p);
+    }
+  });
+
+  return Array.from(mapPedidos.values()).sort(
+    (a, b) => new Date(b.creado_en || 0) - new Date(a.creado_en || 0)
+  );
+}
+
+export async function registrarCompraAdmin(producto, cantidad, clienteInfo = {}) {
+  const item = {
+    producto: producto,
+    cantidad: parseInt(cantidad, 10) || 1
+  };
+
+  const usuarioSimulado = {
+    id: 999,
+    nombre: clienteInfo.nombre || "Venta Directa Admin",
+    email: clienteInfo.email || "admin@dulcevicio.com"
+  };
+
+  return await crearPedido([item], usuarioSimulado);
+}
+
 
 export async function login(email, password) {
   try {

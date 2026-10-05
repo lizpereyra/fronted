@@ -2,21 +2,30 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from fastapi import FastAPI
+from pathlib import Path
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 from app.core.config import settings
-from app.db.database import Base, engine, SessionLocal
+from app.db.database import Base, engine, SessionLocal, get_db
 from app.db import models
 from app.core import security
-from app.routers import auth, productos, pedidos
+from app.routers import auth, productos, pedidos, usuarios
 
 Base.metadata.create_all(bind=engine)
 
+# Asegurar existencia de directorios para evitar excepciones en contenedores vacíos
+Path("uploads/productos").mkdir(parents=True, exist_ok=True)
+Path("app/static/demo").mkdir(parents=True, exist_ok=True)
+
 tags_metadata = [
+    {"name": "Salud", "description": "Verificación de estado de la API y Base de datos"},
     {"name": "Productos", "description": "Catálogo de dulces y pastelería"},
     {"name": "Pedidos", "description": "Checkout transaccional e historial de compras"},
     {"name": "Autenticación", "description": "Registro e inicio de sesión de usuarios (Ley 25.326)"},
+    {"name": "Usuarios", "description": "Gestión de perfil, derechos de privacidad y baja de cuenta (Ley 25.326)"},
 ]
 
 app = FastAPI(title=settings.PROJECT_NAME, openapi_tags=tags_metadata)
@@ -29,9 +38,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Montaje de carpetas estáticas para subidas y demo
+app.mount("/static", StaticFiles(directory="uploads"), name="static")
+app.mount("/demo", StaticFiles(directory="app/static/demo"), name="demo")
+
 app.include_router(auth.router)
 app.include_router(productos.router)
 app.include_router(pedidos.router)
+app.include_router(usuarios.router)
+
+
+@app.get("/salud", tags=["Salud"])
+def salud(db: Session = Depends(get_db)):
+    db.execute(text("SELECT 1"))
+    return {"estado": "ok", "base": "ok"}
+
 
 
 @app.on_event("startup")

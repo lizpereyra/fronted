@@ -98,24 +98,23 @@ export default function MisPedidos() {
   return (
     <div className="min-h-screen bg-pastel-pink-50 py-10 px-4 md:px-8 font-sans text-pastel-pink-900">
       <div className="max-w-4xl mx-auto">
-        
-        {/* Header */}
+          {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-3xl font-bold text-pastel-pink-950 font-serif m-0">
-              Historial de Pedidos
+              🛍️ Registro de Compras
             </h2>
             <p className="text-xs md:text-sm text-pastel-pink-900 mt-1 m-0">
-              Consulta tus compras realizadas y el estado de cada pedido.
+              Consulta tus compras realizadas y el detalle completo de tus registros.
             </p>
           </div>
 
           <button
             onClick={fetchPedidos}
             className="px-3 py-2 rounded-xl bg-white hover:bg-pastel-pink-100 text-pastel-pink-900 border border-pastel-pink-300 transition-all text-xs font-bold flex items-center gap-1 cursor-pointer shadow-2xs"
-            title="Recargar Pedidos"
+            title="Recargar Compras"
           >
-            🔄 Actualizar
+            🔄 Actualizar Compras
           </button>
         </div>
 
@@ -123,7 +122,7 @@ export default function MisPedidos() {
         {loading && (
           <div className="bg-white rounded-3xl p-10 text-center border border-pastel-pink-200 shadow-xs max-w-md mx-auto my-8">
             <div className="inline-block animate-spin text-4xl mb-3">🌸</div>
-            <p className="text-base font-bold text-pastel-pink-950 m-0">Cargando tus compras…</p>
+            <p className="text-base font-bold text-pastel-pink-950 m-0">Cargando registro de compras…</p>
           </div>
         )}
 
@@ -145,7 +144,7 @@ export default function MisPedidos() {
         {!loading && !error && pedidos.length === 0 && (
           <div className="bg-white rounded-3xl p-10 text-center border border-pastel-pink-200 shadow-xs max-w-md mx-auto my-8">
             <span className="text-5xl mb-4 block select-none">📦</span>
-            <p className="text-base font-bold text-pastel-pink-950 mb-2 m-0">Todavía no compraste nada.</p>
+            <p className="text-base font-bold text-pastel-pink-950 mb-2 m-0">Todavía no registraste ninguna compra.</p>
             <p className="text-xs text-pastel-pink-900 mb-6 m-0">
               Revisa nuestro catálogo e inicia tu primera orden en Dulce Vicio.
             </p>
@@ -158,103 +157,126 @@ export default function MisPedidos() {
           </div>
         )}
 
-        {/* State 4: List of Orders */}
+        {/* State 4: List of Orders (Formatted matching Admin Purchase Record View) */}
         {!loading && !error && pedidos.length > 0 && (
           <div className="space-y-6">
-            {pedidos.map(pedido => (
-              <div 
-                key={pedido.id} 
-                className="bg-white rounded-3xl p-6 border border-pastel-pink-200 shadow-xs text-left"
-              >
-                {/* Order Header */}
-                <div className="flex flex-wrap justify-between items-center pb-4 border-b border-pastel-pink-100 gap-2">
-                  <div>
-                    <span className="text-xs text-pastel-pink-800 font-bold uppercase tracking-wider block">
-                      Pedido #{pedido.id}
-                    </span>
-                    <span className="text-xs text-pastel-pink-900 font-medium">
+            {pedidos.map(pedido => {
+              const estadoStyle =
+                (pedido.estado || "").toLowerCase() === "revocado" || (pedido.estado || "").toLowerCase() === "cancelado"
+                  ? "bg-rose-100 text-rose-800 border-rose-300"
+                  : (pedido.estado || "").toLowerCase() === "completado"
+                  ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                  : "bg-amber-100 text-amber-800 border-amber-300";
+
+              return (
+                <div 
+                  key={pedido.id} 
+                  className="p-5 rounded-2xl border border-pastel-pink-200 bg-white hover:border-pastel-pink-300 transition-all shadow-2xs space-y-4 text-left"
+                >
+                  {/* Cabecera del Pedido / Compra */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-pastel-pink-100 pb-3">
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg font-bold text-pastel-pink-950 font-serif">
+                        Pedido #{pedido.id}
+                      </span>
+                      <span className={`text-[11px] font-bold px-3 py-0.5 rounded-full border ${estadoStyle}`}>
+                        {(pedido.estado || "comprado").toUpperCase()}
+                      </span>
+                    </div>
+
+                    <div className="text-xs text-pastel-pink-800 font-medium">
                       📅 {formatDate(pedido.creado_en || pedido.fecha)}
-                    </span>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                      (pedido.estado || "").toLowerCase() === "cancelado"
-                        ? "bg-rose-100 text-rose-900 border border-rose-200"
-                        : "bg-pastel-pink-100 text-pastel-pink-900 border border-pastel-pink-200"
-                    }`}>
-                      {pedido.estado || "Pendiente"}
-                    </span>
-                    <span className="text-lg font-bold text-pastel-pink-950">
-                      {formatCurrency(pedido.total)}
-                    </span>
+                  {/* Info del Cliente (Registro de Compras Estilo Admin) */}
+                  <div className="bg-pastel-pink-50 p-3 rounded-xl border border-pastel-pink-100 text-xs flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <span className="font-bold text-pastel-pink-950">Cliente: </span>
+                      <span className="font-semibold text-pastel-pink-900">
+                        {pedido.usuario?.nombre || `Usuario #${pedido.usuario_id || "Cliente"}`}
+                      </span>
+                    </div>
+                    {pedido.usuario?.email && (
+                      <div>
+                        <span className="font-bold text-pastel-pink-950">Email: </span>
+                        <span className="font-semibold text-pastel-pink-800">{pedido.usuario.email}</span>
+                      </div>
+                    )}
                   </div>
-                </div>
 
-                {/* Revocation Success Code Banner (role="status") */}
-                {revocacionStatus && revocacionStatus.pedidoId === pedido.id && (
-                  <div 
-                    role="status" 
-                    className="mt-4 p-4 bg-emerald-50 border border-emerald-300 text-emerald-950 rounded-2xl text-xs font-semibold flex items-center justify-between shadow-2xs"
-                  >
-                    <span>
-                      ✅ Revocación registrada con éxito. Código de solicitud:{" "}
-                      <strong className="font-mono text-sm bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-300">
-                        {revocacionStatus.codigo}
-                      </strong>
+                  {/* Revocación Success Code Banner */}
+                  {revocacionStatus && revocacionStatus.pedidoId === pedido.id && (
+                    <div 
+                      role="status" 
+                      className="p-3 bg-emerald-50 border border-emerald-300 text-emerald-950 rounded-xl text-xs font-semibold flex items-center justify-between shadow-2xs"
+                    >
+                      <span>
+                        ✅ Revocación registrada con éxito. Código de solicitud:{" "}
+                        <strong className="font-mono text-sm bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-300">
+                          {revocacionStatus.codigo}
+                        </strong>
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Ítems solicitados */}
+                  <div className="space-y-2">
+                    <span className="text-xs font-bold text-pastel-pink-900 uppercase tracking-wider block">
+                      Ítems solicitados:
                     </span>
-                  </div>
-                )}
-
-                {/* Items List inside Order using producto_id as key */}
-                <div className="mt-4 space-y-3">
-                  <h4 className="text-xs font-bold text-pastel-pink-800 uppercase tracking-wider m-0">
-                    Detalle del Pedido:
-                  </h4>
-                  <div className="divide-y divide-pastel-pink-100">
-                    {pedido.items && pedido.items.map(item => (
-                      <div 
-                        key={item.producto_id || item.id} 
-                        className="py-2.5 flex justify-between items-center text-sm"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">🍰</span>
-                          <div>
+                    <div className="divide-y divide-pastel-pink-100">
+                      {pedido.items && pedido.items.map((item) => (
+                        <div key={item.id || item.producto_id} className="py-2 flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2">
                             <span className="font-bold text-pastel-pink-950">
                               {item.producto?.nombre || `Producto #${item.producto_id}`}
                             </span>
-                            <span className="text-xs text-pastel-pink-900 ml-2 font-medium">
-                              (x{item.cantidad})
+                            <span className="text-pastel-pink-800 font-medium">
+                              x{item.cantidad}
                             </span>
                           </div>
+                          <div className="font-semibold text-pastel-pink-950">
+                            {formatCurrency((item.precio_unitario || item.producto?.precio_final || 0) * item.cantidad)}
+                            {item.precio_unitario && (
+                              <span className="text-[10px] text-pastel-pink-700 ml-1 font-normal">
+                                ({formatCurrency(item.precio_unitario)} c/u)
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <span className="font-bold text-pastel-pink-900">
-                          {formatCurrency(item.precio_unitario * item.cantidad)}
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Total final acumulado */}
+                  <div className="pt-2 border-t border-pastel-pink-200 flex justify-between items-center text-sm">
+                    <span className="font-bold text-pastel-pink-900">Total acumulado:</span>
+                    <span className="font-extrabold text-pastel-pink-950 text-base">
+                      {formatCurrency(pedido.total || 0)} ARS
+                    </span>
+                  </div>
+
+                  {/* Acciones del Pedido / Revocación */}
+                  {puedeRevocar(pedido) && (
+                    <div className="pt-2 border-t border-pastel-pink-100 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => handleRevocar(pedido.id)}
+                        disabled={revocandoId === pedido.id}
+                        className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold text-xs shadow-xs transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                      >
+                        <span>↩️</span>
+                        <span>
+                          {revocandoId === pedido.id ? "Procesando revocación…" : "Arrepentirme de esta compra"}
                         </span>
-                      </div>
-                    ))}
-                  </div>
+                      </button>
+                    </div>
+                  )}
+
                 </div>
-
-                {/* Revocation Action Button */}
-                {puedeRevocar(pedido) && (
-                  <div className="mt-4 pt-4 border-t border-pastel-pink-100 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => handleRevocar(pedido.id)}
-                      disabled={revocandoId === pedido.id}
-                      className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold text-xs shadow-xs transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
-                    >
-                      <span>↩️</span>
-                      <span>
-                        {revocandoId === pedido.id ? "Procesando revocación…" : "Arrepentirme de esta compra"}
-                      </span>
-                    </button>
-                  </div>
-                )}
-
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

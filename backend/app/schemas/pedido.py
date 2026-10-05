@@ -24,6 +24,14 @@ class ItemOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class UsuarioSimpleOut(BaseModel):
+    id: int
+    nombre: Optional[str] = None
+    email: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class PedidoOut(BaseModel):
     id: int
     usuario_id: Optional[int] = None
@@ -31,5 +39,7 @@ class PedidoOut(BaseModel):
     estado: str
     creado_en: datetime.datetime
     items: List[ItemOut]
+    usuario: Optional[UsuarioSimpleOut] = None
 
     model_config = ConfigDict(from_attributes=True)
+

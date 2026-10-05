@@ -70,13 +70,11 @@ def crear_pedido(db: Session, usuario: models.Usuario, datos: schemas.PedidoCrea
         )
 
 
-def obtener_mis_pedidos(db: Session, usuario_id: int) -> list[models.Pedido]:
-    return (
-        db.query(models.Pedido)
-        .filter(models.Pedido.usuario_id == usuario_id)
-        .order_by(models.Pedido.creado_en.desc())
-        .all()
-    )
+def obtener_mis_pedidos(db: Session, usuario: models.Usuario) -> list[models.Pedido]:
+    query = db.query(models.Pedido)
+    if usuario.rol != "admin":
+        query = query.filter(models.Pedido.usuario_id == usuario.id)
+    return query.order_by(models.Pedido.creado_en.desc()).all()
 
 
 def obtener_pedido_por_id(db: Session, usuario: models.Usuario, pedido_id: int) -> models.Pedido:

@@ -6,10 +6,13 @@ import { useCarrito } from "../context/CarritoContext";
 
 export default function Catalogo() {
   const [productos, setProductos] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [busqueda, setBusqueda] = useState("");
   const [notification, setNotification] = useState(null);
+
+  // Estado para ocultar el catálogo al iniciar hasta presionar el botón de la Hero Section
+  const [mostrarCatalogo, setMostrarCatalogo] = useState(false);
 
   const location = useLocation();
   const { agregar } = useCarrito();
@@ -34,8 +37,10 @@ export default function Catalogo() {
   };
 
   useEffect(() => {
-    loadCatalog();
-  }, [page, busqueda]);
+    if (mostrarCatalogo) {
+      loadCatalog();
+    }
+  }, [mostrarCatalogo, page, busqueda]);
 
   const handleAddToCart = (producto) => {
     if (producto.stock <= 0) {
@@ -53,11 +58,16 @@ export default function Catalogo() {
     }, duration);
   };
 
-  const scrollToCatalogo = () => {
-    const el = document.getElementById("catalogo");
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
+  const handleBotonHero = () => {
+    if (!mostrarCatalogo) {
+      setMostrarCatalogo(true);
     }
+    setTimeout(() => {
+      const el = document.getElementById("catalogo");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 100);
   };
 
   return (
@@ -99,11 +109,11 @@ export default function Catalogo() {
             <div className="pt-2">
               <button
                 type="button"
-                onClick={scrollToCatalogo}
+                onClick={handleBotonHero}
                 className="px-8 py-3.5 rounded-2xl bg-pastel-pink-600 hover:bg-pastel-pink-700 active:bg-pastel-pink-800 text-white font-bold text-sm md:text-base shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 cursor-pointer inline-flex items-center gap-2 border border-pastel-pink-500"
               >
                 <span>🍰</span>
-                <span>Explorar Catálogo</span>
+                <span>{mostrarCatalogo ? "Ver Catálogo" : "Explorar Catálogo"}</span>
                 <span>↓</span>
               </button>
             </div>
@@ -111,104 +121,106 @@ export default function Catalogo() {
         </div>
       </section>
 
-      {/* Main Catalog Area */}
-      <main id="catalogo" className="max-w-7xl mx-auto px-4 md:px-8 py-10 flex-grow w-full scroll-mt-20">
-        
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 border-b border-pastel-pink-200 pb-6">
-          <div>
-            <h2 className="text-2xl md:text-4xl font-bold text-pastel-pink-950 font-serif m-0">
-              Catálogo Oficial de Dulce Vicio
-            </h2>
-            <p className="text-xs md:text-sm text-pastel-pink-900 mt-1 m-0">
-              Postres frescos elaborados artesanalmente.
-            </p>
-          </div>
+      {/* Main Catalog Area - Desplegado únicamente tras pulsar el botón de la Hero Section */}
+      {mostrarCatalogo && (
+        <main id="catalogo" className="max-w-7xl mx-auto px-4 md:px-8 py-10 flex-grow w-full scroll-mt-20 animate-fade-in">
           
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1 sm:flex-none">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-pastel-pink-400">
-                🔍
-              </span>
-              <input 
-                type="text" 
-                placeholder="Buscar por nombre..." 
-                value={busqueda} 
-                onChange={(e) => {
-                  setPage(0);
-                  setBusqueda(e.target.value);
-                }}
-                className="w-full sm:w-64 pl-9 pr-4 py-2 rounded-xl border border-pastel-pink-300 bg-white focus:outline-none focus:ring-2 focus:ring-pastel-pink-500 text-sm text-pastel-pink-900 font-medium"
-              />
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 border-b border-pastel-pink-200 pb-6">
+            <div>
+              <h2 className="text-2xl md:text-4xl font-bold text-pastel-pink-950 font-serif m-0">
+                Catálogo Oficial de Dulce Vicio
+              </h2>
+              <p className="text-xs md:text-sm text-pastel-pink-900 mt-1 m-0">
+                Postres frescos elaborados artesanalmente.
+              </p>
             </div>
             
-            <button 
-              onClick={loadCatalog}
-              className="px-3 py-2 rounded-xl bg-white hover:bg-pastel-pink-100 text-pastel-pink-900 border border-pastel-pink-300 transition-all text-xs font-bold flex items-center gap-1 cursor-pointer shadow-2xs"
-              title="Actualizar Catálogo"
-            >
-              🔄
-            </button>
-          </div>
-        </div>
-
-        {/* Loading / Empty / Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="bg-white/60 rounded-3xl h-96 animate-pulse p-6 border border-pastel-pink-200">
-                <div className="w-full h-40 bg-pastel-pink-100 rounded-2xl mb-4"></div>
-                <div className="h-6 bg-pastel-pink-100 rounded w-2/3 mb-3"></div>
-                <div className="h-4 bg-pastel-pink-100 rounded w-1/2 mb-8"></div>
-                <div className="h-10 bg-pastel-pink-100 rounded w-full"></div>
-              </div>
-            ))}
-          </div>
-        ) : productos.length === 0 ? (
-          /* Empty Search Result Message */
-          <div className="bg-white rounded-3xl border border-pastel-pink-200 text-pastel-pink-900 p-10 text-center max-w-lg mx-auto shadow-xs my-8">
-            <span className="text-5xl mb-3 block select-none">🧁</span>
-            <h3 className="font-bold text-xl text-pastel-pink-950 mb-2">No hay productos disponibles</h3>
-            <p className="text-sm text-pastel-pink-800 m-0">
-              {busqueda 
-                ? `No encontramos ningún postre que coincida con "${busqueda}". Prueba ajustando tu búsqueda.` 
-                : "En este momento no contamos con postres exhibidos."}
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {productos.map(prod => (
-                <ProductCard 
-                  key={prod.id} 
-                  producto={prod} 
-                  onAddToCart={handleAddToCart}
+            <div className="flex items-center gap-3">
+              <div className="relative flex-1 sm:flex-none">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-pastel-pink-400">
+                  🔍
+                </span>
+                <input 
+                  type="text" 
+                  placeholder="Buscar por nombre..." 
+                  value={busqueda} 
+                  onChange={(e) => {
+                    setPage(0);
+                    setBusqueda(e.target.value);
+                  }}
+                  className="w-full sm:w-64 pl-9 pr-4 py-2 rounded-xl border border-pastel-pink-300 bg-white focus:outline-none focus:ring-2 focus:ring-pastel-pink-500 text-sm text-pastel-pink-900 font-medium"
                 />
+              </div>
+              
+              <button 
+                onClick={loadCatalog}
+                className="px-3 py-2 rounded-xl bg-white hover:bg-pastel-pink-100 text-pastel-pink-900 border border-pastel-pink-300 transition-all text-xs font-bold flex items-center gap-1 cursor-pointer shadow-2xs"
+                title="Actualizar Catálogo"
+              >
+                🔄
+              </button>
+            </div>
+          </div>
+
+          {/* Loading / Empty / Grid */}
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map(i => (
+                <div key={i} className="bg-white/60 rounded-3xl h-96 animate-pulse p-6 border border-pastel-pink-200">
+                  <div className="w-full h-40 bg-pastel-pink-100 rounded-2xl mb-4"></div>
+                  <div className="h-6 bg-pastel-pink-100 rounded w-2/3 mb-3"></div>
+                  <div className="h-4 bg-pastel-pink-100 rounded w-1/2 mb-8"></div>
+                  <div className="h-10 bg-pastel-pink-100 rounded w-full"></div>
+                </div>
               ))}
             </div>
-
-            {/* Pagination Controls */}
-            <div className="flex items-center justify-center gap-3 mt-10">
-              <button 
-                onClick={() => setPage(page - 1)} 
-                disabled={page === 0}
-                className="px-5 py-2 rounded-xl bg-white hover:bg-pastel-pink-100 text-pastel-pink-900 border border-pastel-pink-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs font-bold shadow-2xs cursor-pointer"
-              >
-                Anterior
-              </button>
-              <span className="text-xs font-bold text-pastel-pink-950 bg-white border border-pastel-pink-300 px-4 py-2 rounded-xl shadow-2xs">
-                Página {page + 1}
-              </span>
-              <button 
-                onClick={() => setPage(page + 1)}
-                disabled={productos.length < 6}
-                className="px-5 py-2 rounded-xl bg-white hover:bg-pastel-pink-100 text-pastel-pink-900 border border-pastel-pink-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs font-bold shadow-2xs cursor-pointer"
-              >
-                Siguiente
-              </button>
+          ) : productos.length === 0 ? (
+            /* Empty Search Result Message */
+            <div className="bg-white rounded-3xl border border-pastel-pink-200 text-pastel-pink-900 p-10 text-center max-w-lg mx-auto shadow-xs my-8">
+              <span className="text-5xl mb-3 block select-none">🧁</span>
+              <h3 className="font-bold text-xl text-pastel-pink-950 mb-2">No hay productos disponibles</h3>
+              <p className="text-sm text-pastel-pink-800 m-0">
+                {busqueda 
+                  ? `No encontramos ningún postre que coincida con "${busqueda}". Prueba ajustando tu búsqueda.` 
+                  : "En este momento no contamos con postres exhibidos."}
+              </p>
             </div>
-          </>
-        )}
-      </main>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {productos.map(prod => (
+                  <ProductCard 
+                    key={prod.id} 
+                    producto={prod} 
+                    onAddToCart={handleAddToCart}
+                  />
+                ))}
+              </div>
+
+              {/* Pagination Controls */}
+              <div className="flex items-center justify-center gap-3 mt-10">
+                <button 
+                  onClick={() => setPage(page - 1)} 
+                  disabled={page === 0}
+                  className="px-5 py-2 rounded-xl bg-white hover:bg-pastel-pink-100 text-pastel-pink-900 border border-pastel-pink-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs font-bold shadow-2xs cursor-pointer"
+                >
+                  Anterior
+                </button>
+                <span className="text-xs font-bold text-pastel-pink-950 bg-white border border-pastel-pink-300 px-4 py-2 rounded-xl shadow-2xs">
+                  Página {page + 1}
+                </span>
+                <button 
+                  onClick={() => setPage(page + 1)}
+                  disabled={productos.length < 6}
+                  className="px-5 py-2 rounded-xl bg-white hover:bg-pastel-pink-100 text-pastel-pink-900 border border-pastel-pink-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs font-bold shadow-2xs cursor-pointer"
+                >
+                  Siguiente
+                </button>
+              </div>
+            </>
+          )}
+        </main>
+      )}
 
     </div>
   );

@@ -31,6 +31,22 @@ export default function App() {
                 <Route path="/carrito" element={<Carrito />} />
                 <Route path="/arrepentimiento" element={<Arrepentimiento />} />
                 <Route
+                  path="/compras"
+                  element={
+                    <RutaProtegida>
+                      <MisPedidos />
+                    </RutaProtegida>
+                  }
+                />
+                <Route
+                  path="/mis-compras"
+                  element={
+                    <RutaProtegida>
+                      <MisPedidos />
+                    </RutaProtegida>
+                  }
+                />
+                <Route
                   path="/mis-pedidos"
                   element={
                     <RutaProtegida>
