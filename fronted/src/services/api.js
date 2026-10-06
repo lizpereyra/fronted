@@ -1,4 +1,4 @@
-export const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+export const BASE_URL = import.meta.env.VITE_API_URL || "https://fronted-8iir.onrender.com";
 
 export const PRODUCTOS_OFICIALES = [
   { id: 1, nombre: "Tiramisú", precio_final: 4500.0, cuotas_cantidad: 3, cuotas_valor: 1500.0, garantia_meses: 0, stock: 10, imagen_url: "/images/tiramisu.jpg" },
@@ -265,7 +265,7 @@ export async function login(email, password) {
 }
 
 export async function registro(datosUsuario) {
-  const res = await fetch(`${BASE_URL}/auth/registro/`, { // <-- Agregá la barra / al final
+  const res = await fetch(`${BASE_URL}/auth/registro/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(datosUsuario)
