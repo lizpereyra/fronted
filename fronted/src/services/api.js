@@ -23,7 +23,7 @@ export async function manejarRespuesta(res) {
   if (res.status === 401) {
     throw new Error("Tu sesión venció. Volvé a entrar.");
   }
-  
+
   if (!res.ok) {
     let mensajeError = "Error en la operación";
     try {
@@ -34,10 +34,10 @@ export async function manejarRespuesta(res) {
     } catch {
       mensajeError = `Error HTTP ${res.status}`;
     }
-    
+
     throw new Error(mensajeError);
   }
-  
+
   return res.json();
 }
 
@@ -265,7 +265,7 @@ export async function login(email, password) {
 }
 
 export async function registro(datosUsuario) {
-  const res = await fetch(`${BASE_URL}/auth/registro/`, { // <-- Agregada / al final
+  const res = await fetch(`${BASE_URL}/auth/registro/`, { // <-- Agregá la barra / al final
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(datosUsuario)
