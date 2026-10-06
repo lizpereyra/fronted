@@ -265,7 +265,7 @@ export async function login(email, password) {
 }
 
 export async function registro(datosUsuario) {
-  const res = await fetch(`${BASE_URL}/auth/register`, {
+  const res = await fetch(`${BASE_URL}/auth/registro`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(datosUsuario)
