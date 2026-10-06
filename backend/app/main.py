@@ -9,7 +9,8 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from app.core.config import settings
-from app.db.database import Base, engine, SessionLocal, get_db
+from app.db.database import Base, engine, SessionLocal
+from app.dependencies import get_db
 from app.db import models
 from app.core import security
 from app.routers import auth, productos, pedidos, usuarios
