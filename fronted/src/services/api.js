@@ -265,7 +265,7 @@ export async function login(email, password) {
 }
 
 export async function registro(datosUsuario) {
-  const res = await fetch(`${BASE_URL}/auth/registro`, {
+  const res = await fetch(`${BASE_URL}/auth/registro/`, { // <-- Agregada / al final
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(datosUsuario)
@@ -273,6 +273,7 @@ export async function registro(datosUsuario) {
 
   return manejarRespuesta(res);
 }
+
 
 export async function crearProducto(productoData) {
   try {
